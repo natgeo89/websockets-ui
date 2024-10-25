@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "module": "Node16",
+    "target": "ES6",
+    "moduleResolution": "Node16",
+  },
+
+}
