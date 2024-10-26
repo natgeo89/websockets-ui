@@ -58,7 +58,7 @@ export function createRoom(userId: string): UpdateRoomReturn {
 export function addToRoom(
   userId: string,
   roomId: string
-): UpdateRoomReturn | CreateGameReturn {
+): (UpdateRoomReturn | CreateGameReturn)[] {
   // Check if this user already inside this room
   const roomWithThisUser = db_getRooms().find(
     (room) =>
@@ -75,14 +75,20 @@ export function addToRoom(
   const updatedRoom = db_getRoom(roomId);
 
   if (updatedRoom.roomUsers.length === 2) {
-    return createGame(userId, updatedRoom);
+    const idGame = crypto.randomUUID();
+
+    return updatedRoom.roomUsers.map((player) =>
+      createGame(idGame, player.index)
+    );
   }
 
-  return {
-    type: "update_room",
-    data: db_getRooms().filter(({ roomUsers }) => roomUsers.length < 2),
-    clientIds: db_getUserIds().filter(
-      (userId) => !updatedRoom.roomUsers.find(({ index }) => index === userId)
-    ),
-  };
+  return [
+    {
+      type: "update_room",
+      data: db_getRooms().filter(({ roomUsers }) => roomUsers.length < 2),
+      clientIds: db_getUserIds().filter(
+        (userId) => !updatedRoom.roomUsers.find(({ index }) => index === userId)
+      ),
+    },
+  ];
 }

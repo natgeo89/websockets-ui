@@ -1,4 +1,3 @@
-// import crypto from "node:crypto";
 import { DB_User, UserCreds } from "../types/User.type";
 
 const USERS: DB_User[] = [];

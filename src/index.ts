@@ -31,13 +31,15 @@ wss.on("connection", function connection(ws: CustomWebSocket) {
       (data) => data !== undefined
     );
 
+    if (processedDataArray.length === 0) return;
+
     for (const processedData of processedDataArray) {
       wss.clients.forEach((client) => {
         const customClient = client as CustomWebSocket;
 
         if (processedData.clientIds.includes(customClient.userId)) {
           const serverMessage = JSON.stringify({
-            ...processedData,
+            type: processedData.type,
             data: JSON.stringify(processedData.data),
             id: 0,
           });

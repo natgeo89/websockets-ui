@@ -1,15 +1,13 @@
 import { db_getUserIds } from "../database/users";
-// import { createGame } from "./game";
+import { addShips } from "./game";
 import { registUser } from "./register";
 import { getRooms, createRoom, addToRoom } from "./room";
 import { getWinners } from "./winners";
 
 interface ProcessedReturn {
-  // response: {
-    type: string;
-    data: unknown;
-    clientIds: string[];
-  // };
+  type: string;
+  data: unknown;
+  clientIds: string[];
 }
 
 function controller(userId: string, clientData: string): ProcessedReturn[] {
@@ -28,15 +26,19 @@ function controller(userId: string, clientData: string): ProcessedReturn[] {
 
     case "add_user_to_room": {
       const data = JSON.parse(parsedClientData.data);
-      const add_user_to_room = [
-        addToRoom(userId, data.indexRoom),
-        getRooms(),
-      ];
+      const add_user_to_room = [...addToRoom(userId, data.indexRoom), getRooms()];
       return add_user_to_room;
     }
 
-    default:
-      break;
+    case "add_ships": {
+      const data = JSON.parse(parsedClientData.data);
+
+      return addShips({
+        gameId: data.gameId,
+        playerId: data.indexPlayer,
+        ships: data.ships,
+      });
+    }
   }
 
   return [{ type: "nothing", data: "", clientIds: db_getUserIds() }];
