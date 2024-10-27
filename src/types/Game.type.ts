@@ -13,27 +13,10 @@ export interface DB_Game {
   players: {
     playerId: string;
     ships: Ship[]
+    shotCells: {
+      x: number;
+      y: number;
+    }[]
   }[];
+  turnId?: string;
 }
-
-// {
-//   type: "add_ships",
-//   data:
-//       {
-//           gameId: <number | string>,
-//           ships:
-//               [
-//                   {
-//                       position: {
-//                           x: <number>,
-//                           y: <number>,
-//                       },
-//                       direction: <boolean>,
-//                       length: <number>,
-//                       type: "small"|"medium"|"large"|"huge",
-//                   }
-//               ],
-//           indexPlayer: <number | string>, /* id of the player in the current game session */
-//       },
-//   id: 0,
-// }

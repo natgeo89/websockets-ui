@@ -1,5 +1,5 @@
 import { db_getUserIds } from "../database/users";
-import { addShips } from "./game";
+import { addShips, attack } from "./game";
 import { registUser } from "./register";
 import { getRooms, createRoom, addToRoom } from "./room";
 import { getWinners } from "./winners";
@@ -26,7 +26,10 @@ function controller(userId: string, clientData: string): ProcessedReturn[] {
 
     case "add_user_to_room": {
       const data = JSON.parse(parsedClientData.data);
-      const add_user_to_room = [...addToRoom(userId, data.indexRoom), getRooms()];
+      const add_user_to_room = [
+        ...addToRoom(userId, data.indexRoom),
+        getRooms(),
+      ];
       return add_user_to_room;
     }
 
@@ -38,6 +41,14 @@ function controller(userId: string, clientData: string): ProcessedReturn[] {
         playerId: data.indexPlayer,
         ships: data.ships,
       });
+    }
+
+    case "attack": {
+      const { gameId, indexPlayer, x, y } = JSON.parse(parsedClientData.data);
+
+      return attack({ fromPlayerId: indexPlayer, gameId: gameId, x, y });
+
+      return [];
     }
   }
 
