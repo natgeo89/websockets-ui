@@ -1,5 +1,6 @@
 import { db_addGame, db_getGame, db_getGames } from "../database/games";
 import { Ship } from "../types/Game.type";
+import { getKilledCells } from "../utils/game";
 
 export interface CreateGameReturn {
   type: "create_game";
@@ -31,12 +32,15 @@ export function addShips({
   const game = games.find((game) => game.gameId === gameId);
 
   if (!game) {
-    db_addGame({ gameId, players: [{ playerId, ships, shotCells: [] }] });
+    db_addGame({
+      gameId,
+      players: [{ playerId, ships, shotCells: new Set() }],
+    });
 
     return [];
   }
 
-  game.players.push({ playerId, ships, shotCells: [] });
+  game.players.push({ playerId, ships, shotCells: new Set() });
 
   const playersIds = game.players.map(({ playerId }) => playerId);
 
@@ -114,15 +118,13 @@ export function attack({
   const gamePlayerIds = game.players.map(({ playerId }) => playerId);
   const player = game.players.find(({ playerId }) => playerId === fromPlayerId);
 
-  const isCellAlreadyShoted = player.shotCells.find(
-    (shotted) => shotted.x === x && shotted.y === y
-  );
+  const isCellAlreadyShoted = player.shotCells.has(`${x}:${y}`);
 
   if (isCellAlreadyShoted) {
     return [turn(gamePlayerIds, fromPlayerId)];
   }
 
-  player.shotCells.push({ x, y });
+  player.shotCells.add(`${x}:${y}`);
 
   const enemy = game.players.find(({ playerId }) => playerId !== fromPlayerId);
 
@@ -141,7 +143,7 @@ export function attack({
   );
 
   const killedShip = shottedShip?.every(({ x, y }) =>
-    player.shotCells.find((cell) => cell.x === x && cell.y === y)
+    player.shotCells.has(`${x}:${y}`)
   );
 
   let status: "miss" | "shot" | "killed" = "miss";
@@ -167,16 +169,32 @@ export function attack({
 
   if (killedShip) {
     status = "killed";
+    const { killedCells, missedCells } = getKilledCells(shottedShip);
 
-    attackReturn = shottedShip.map((ship) => ({
-      type: "attack",
-      data: {
-        currentPlayer: fromPlayerId,
-        position: { x: ship.x, y: ship.y },
-        status: "killed",
-      },
-      clientIds: gamePlayerIds,
-    }));
+    for (const {x, y} of [...killedCells, ...missedCells]){
+      player.shotCells.add(`${x}:${y}`);
+    }
+
+    attackReturn = [
+      ...killedCells.map<AttackReturn>((ship) => ({
+        type: "attack",
+        data: {
+          currentPlayer: fromPlayerId,
+          position: { x: ship.x, y: ship.y },
+          status: "killed",
+        },
+        clientIds: gamePlayerIds,
+      })),
+      ...missedCells.map<AttackReturn>((ship) => ({
+        type: "attack",
+        data: {
+          currentPlayer: fromPlayerId,
+          position: { x: ship.x, y: ship.y },
+          status: "miss",
+        },
+        clientIds: gamePlayerIds,
+      })),
+    ];
   }
 
   const turnPlayerId = shottedShip ? fromPlayerId : enemy.playerId;
