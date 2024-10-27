@@ -77,3 +77,12 @@ export function getUnshottedCell(
 
   return unshotedCells[Math.floor(Math.random() * unshotedCells.length)];
 }
+
+export function isGameFinish(
+  enemyShipsPositions: Position[][],
+  player: DB_Game["players"][0]
+): boolean {
+  return enemyShipsPositions.every((shipPosition) =>
+    shipPosition.every(({ x, y }) => player.shotCells.has(`${x}:${y}`))
+  );
+}

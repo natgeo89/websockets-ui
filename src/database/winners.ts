@@ -11,7 +11,7 @@ export function db_addWinner(winnerName: DB_User['name']): void {
   const winnerIndex = WINNERS.findIndex(({ name }) => winnerName === name);
 
   if (winnerIndex === -1) {
-    WINNERS.push({ name: winnerName, wins: 0 });
+    WINNERS.push({ name: winnerName, wins: 1 });
   } else {
     WINNERS[winnerIndex] = {
       ...WINNERS[winnerIndex],

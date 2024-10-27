@@ -1,6 +1,6 @@
 import { DB_User } from "./User.type";
 
 export interface DB_Room {
-  roomId: number | string;
+  roomId: string;
   roomUsers: DB_User[];
 }

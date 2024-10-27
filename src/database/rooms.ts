@@ -44,3 +44,11 @@ export function db_addToRoom(userId: string, roomId: string): void {
     ROOMS[roomIndex] = updatedRoom;
   }
 }
+
+export function db_removeRoom(roomId: string): void {
+  const restRooms = ROOMS.filter((room) => room.roomId !== roomId);
+
+  ROOMS.length = 0;
+
+  ROOMS.push(...restRooms);
+}

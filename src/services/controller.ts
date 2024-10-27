@@ -1,5 +1,5 @@
 import { db_getUserIds } from "../database/users";
-import { getUnshottedCell } from "../utils/game";
+import { getUnshottedCell } from "../utils/utils";
 import { addShips, attack } from "./game";
 import { registUser } from "./register";
 import { getRooms, createRoom, addToRoom } from "./room";
@@ -58,17 +58,13 @@ function controller(userId: string, clientData: string): ProcessedReturn[] {
       if (unshotCell === null) {
         return [];
       }
-      //   {
-      //     type: "randomAttack",
-      //     data:
-      //         {
-      //             gameId: <number | string>,
-      //             indexPlayer: <number | string>, /* id of the player in the current game session */
-      //         },
-      //     id: 0,
-      // }
 
-      return attack({ fromPlayerId: indexPlayer, gameId: gameId, x: unshotCell.x, y: unshotCell.y });
+      return attack({
+        fromPlayerId: indexPlayer,
+        gameId: gameId,
+        x: unshotCell.x,
+        y: unshotCell.y,
+      });
     }
   }
 

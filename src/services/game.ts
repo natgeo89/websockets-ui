@@ -1,6 +1,7 @@
 import { db_addGame, db_getGame, db_getGames } from "../database/games";
 import { Ship } from "../types/Game.type";
-import { getKilledCells } from "../utils/game";
+import { getKilledCells, isGameFinish } from "../utils/utils";
+import { updateWinners, UpdateWinnersReturn } from "./winners";
 
 export interface CreateGameReturn {
   type: "create_game";
@@ -108,7 +109,7 @@ export function attack({
   fromPlayerId: string;
   x: number;
   y: number;
-}): (AttackReturn | TurnReturn)[] {
+}): (AttackReturn | TurnReturn | FinishReturn | UpdateWinnersReturn)[] {
   const game = db_getGame(gameId);
 
   if (game === null) return [];
@@ -171,7 +172,7 @@ export function attack({
     status = "killed";
     const { killedCells, missedCells } = getKilledCells(shottedShip);
 
-    for (const {x, y} of [...killedCells, ...missedCells]){
+    for (const { x, y } of [...killedCells, ...missedCells]) {
       player.shotCells.add(`${x}:${y}`);
     }
 
@@ -201,5 +202,39 @@ export function attack({
 
   game.turnId = turnPlayerId;
 
-  return [...attackReturn, turn(gamePlayerIds, turnPlayerId)];
+  const returnData: (
+    | AttackReturn
+    | TurnReturn
+    | FinishReturn
+    | UpdateWinnersReturn
+  )[] = [...attackReturn, turn(gamePlayerIds, turnPlayerId)];
+
+  const isFinish = isGameFinish(enemyShipsPositions, player);
+
+  if (isFinish) {
+    returnData.push(
+      finishGame(gamePlayerIds, player.playerId),
+      updateWinners(player.playerId)
+    );
+  }
+
+  return returnData;
+}
+
+interface FinishReturn {
+  type: "finish";
+  data: {
+    winPlayer: string;
+  };
+  clientIds: string[];
+}
+
+function finishGame(gamePlayerIds: string[], winnerId: string): FinishReturn {
+  return {
+    type: "finish",
+    data: {
+      winPlayer: winnerId,
+    },
+    clientIds: gamePlayerIds,
+  };
 }

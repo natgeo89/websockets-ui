@@ -4,6 +4,7 @@ import {
   db_createRoom,
   db_getRoom,
   db_getRooms,
+  db_removeRoom,
 } from "../database/rooms";
 import { db_getUserIds } from "../database/users";
 import { createGame, CreateGameReturn } from "./game";
@@ -67,7 +68,7 @@ export function addToRoom(
   );
 
   if (roomWithThisUser) {
-    return undefined;
+    return [];
   }
 
   db_addToRoom(userId, roomId);
@@ -77,9 +78,21 @@ export function addToRoom(
   if (updatedRoom.roomUsers.length === 2) {
     const idGame = crypto.randomUUID();
 
-    return updatedRoom.roomUsers.map((player) =>
+    const returnData = updatedRoom.roomUsers.map((player) =>
       createGame(idGame, player.index)
     );
+
+    const roomsCreatedByCurrentPlayers = db_getRooms().filter(({ roomUsers }) =>
+      updatedRoom.roomUsers.find((user) =>
+        roomUsers.find(({ index }) => index === user.index)
+      )
+    );
+
+    for (const room of roomsCreatedByCurrentPlayers) {
+      db_removeRoom(room.roomId);
+    }
+
+    return returnData;
   }
 
   return [
