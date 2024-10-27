@@ -17,6 +17,13 @@ export function db_getGame(gameId: string): DB_Game {
 }
 
 export function db_addGame(newGame: DB_Game): void {
-   GAMES.push(newGame);
+  GAMES.push(newGame);
 }
 
+export function db_removeGame(gameId: string | number): void {
+  const restGames = GAMES.filter((game) => game.gameId !== gameId);
+
+  GAMES.length = 0;
+
+  GAMES.push(...restGames);
+}

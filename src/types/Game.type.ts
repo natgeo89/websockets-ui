@@ -11,7 +11,7 @@ export interface Ship {
 }
 
 export interface DB_Game {
-  gameId: number | string;
+  gameId: string;
   players: {
     playerId: string;
     ships: Ship[];

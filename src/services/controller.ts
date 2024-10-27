@@ -1,6 +1,6 @@
-import { db_getUserIds } from "../database/users";
 import { getUnshottedCell } from "../utils/utils";
-import { addShips, attack } from "./game";
+import { createBot } from "./bot";
+import { addShips, attack, createGame } from "./game";
 import { registUser } from "./register";
 import { getRooms, createRoom, addToRoom } from "./room";
 import { getWinners } from "./winners";
@@ -66,9 +66,15 @@ function controller(userId: string, clientData: string): ProcessedReturn[] {
         y: unshotCell.y,
       });
     }
-  }
 
-  return [{ type: "nothing", data: "", clientIds: db_getUserIds() }];
+    case "single_play": {
+      const gameId = `bot::${userId}`;
+      createBot(gameId);
+
+      return [createGame(gameId, userId)];
+    }
+  }
+  return [];
 }
 
 export { controller };

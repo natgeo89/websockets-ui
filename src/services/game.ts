@@ -1,4 +1,10 @@
-import { db_addGame, db_getGame, db_getGames } from "../database/games";
+import {
+  db_addGame,
+  db_getGame,
+  db_getGames,
+  db_removeGame,
+} from "../database/games";
+import { getShips } from "../database/ships";
 import { Ship } from "../types/Game.type";
 import { getKilledCells, isGameFinish } from "../utils/utils";
 import { updateWinners, UpdateWinnersReturn } from "./winners";
@@ -29,6 +35,18 @@ export function addShips({
   ships: [];
   playerId: string;
 }): (StartGameReturn | TurnReturn)[] {
+  if (gameId === `bot::${playerId}`) {
+    db_addGame({
+      gameId,
+      players: [
+        { playerId, ships, shotCells: new Set() },
+        { playerId: `bot::${playerId}`, ships: getShips(), shotCells: new Set() },
+      ],
+    });
+
+    return [startGame(playerId, ships), turn([playerId], playerId)];
+  }
+
   const games = db_getGames();
   const game = games.find((game) => game.gameId === gameId);
 
@@ -213,7 +231,7 @@ export function attack({
 
   if (isFinish) {
     returnData.push(
-      finishGame(gamePlayerIds, player.playerId),
+      finishGame(game.gameId, gamePlayerIds, player.playerId),
       updateWinners(player.playerId)
     );
   }
@@ -229,7 +247,13 @@ interface FinishReturn {
   clientIds: string[];
 }
 
-function finishGame(gamePlayerIds: string[], winnerId: string): FinishReturn {
+function finishGame(
+  gameId: string | number,
+  gamePlayerIds: string[],
+  winnerId: string
+): FinishReturn {
+  db_removeGame(gameId);
+
   return {
     type: "finish",
     data: {

@@ -1,6 +1,7 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { httpServer } from "./http_server";
 import { controller } from "./services/controller";
+import "./services/bot";
 
 const HTTP_PORT = 8181;
 
@@ -16,8 +17,11 @@ interface CustomWebSocket extends WebSocket {
 
 const wss = new WebSocketServer({ port: WS_PORT });
 
-wss.on("connection", function connection(ws: CustomWebSocket) {
-  const userId = crypto.randomUUID();
+wss.on("connection", function connection(ws: CustomWebSocket, request) {
+  const url = new URL(request.url, `ws://${request.headers.host}`);
+  const botId = url.searchParams.get("bot");
+
+  const userId = botId ? botId : crypto.randomUUID();
 
   ws.userId = userId;
 
@@ -44,7 +48,7 @@ wss.on("connection", function connection(ws: CustomWebSocket) {
             id: 0,
           });
 
-          console.log("--> server answer:", serverMessage);
+          console.log(`--> server answer to: ${customClient.userId}`, serverMessage);
 
           client.send(serverMessage);
         }
